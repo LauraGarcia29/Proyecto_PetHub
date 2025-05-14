@@ -1,0 +1,36 @@
+<div class="container d-flex justify-content-center align-items-center vh-100">
+  <div class="card p-4 shadow" style="width: 400px;">
+    <h3 class="text-center">Iniciar sesión</h3>
+
+    <!-- Muestra mensaje de error si hay alguno -->
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+    <form (ngSubmit)="login()">
+      <div class="mb-3">
+        <label for="email" class="form-label">Correo electrónico</label>
+        <input type="email" class="form-control" id="email" [(ngModel)]="email" name="email" required placeholder="Ingresa tu correo">
+      </div>
+
+      <div class="mb-3">
+        <label for="password" class="form-label">Contraseña</label>
+        <input type="password" class="form-control" id="password" [(ngModel)]="password" name="password" required placeholder="Ingresa tu contraseña">
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+
+      <div class="text-center mt-3">
+        <a href="#">¿Olvidaste tu contraseña?</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<p>
+    ¿No tienes una cuenta? 
+  </p>
+
+<div class="text-center mt-3">
+  <button class="btn btn-outline-secondary w-100" onclick="window.open('/register', '_blank')">Registrarse aqui</button>
+</div>
