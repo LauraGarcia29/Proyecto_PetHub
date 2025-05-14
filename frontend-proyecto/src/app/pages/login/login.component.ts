@@ -5,7 +5,7 @@ import { AuthService } from '../../services/auth.service';  // Asegúrate de imp
 import { CommonModule } from '@angular/common';
 
 @Component({
-  standalone: true,
+  standalone: true,  // Esto indica que LoginComponent es independiente
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
