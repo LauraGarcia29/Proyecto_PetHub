@@ -16,7 +16,7 @@ export class RegisterComponent {
   email: string = ''; 
   password: string = ''; 
   errorMessage: string = '';
-  successMessage: string = ''; // 📌 Nuevo mensaje de éxito
+  successMessage: string = ''; 
 
   constructor(private authService: AuthService, private router: Router) {}
 
@@ -29,7 +29,7 @@ export class RegisterComponent {
       return;
     }
 
-    this.errorMessage = ''; // 📌 Limpiar mensaje de error
+    this.errorMessage = ''; //Limpiar mensaje de error
     console.log('Enviando solicitud a AuthService...');
     
     this.authService.register(this.name, this.email, this.password).subscribe({

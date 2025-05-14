@@ -1,6 +1,6 @@
 import { importProvidersFrom } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterModule, Routes } from '@angular/router'; // 📌 Agregar esto
+import { RouterModule, Routes } from '@angular/router'; 
 import { provideHttpClient } from '@angular/common/http';
 import { LoginComponent } from './pages/login/login.component';
 import { RegisterComponent } from './pages/register/register.component';
@@ -17,6 +17,6 @@ export const appConfig = {
   providers: [
     provideHttpClient(),
     importProvidersFrom(FormsModule),
-    importProvidersFrom(RouterModule.forRoot(routes)) // 📌 Esto habilita `router-outlet`
+    importProvidersFrom(RouterModule.forRoot(routes)) //habilita `router-outlet`
   ]
 };

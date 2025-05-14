@@ -7,8 +7,8 @@ import { catchError, tap } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiLoginUrl = 'http://localhost:3000/api/login'; // 📌 URL de login
-  private apiRegisterUrl = 'http://localhost:3000/api/register'; // 📌 URL de registro
+  private apiLoginUrl = 'http://localhost:3000/api/login'; 
+  private apiRegisterUrl = 'http://localhost:3000/api/register'; 
 
   constructor(private http: HttpClient) {}
 
@@ -22,7 +22,7 @@ export class AuthService {
     return this.http.post<any>(this.apiLoginUrl, body, { headers, withCredentials: true }).pipe(
       tap((response) => {
         if (response && response.token) {
-          localStorage.setItem('authToken', response.token); // 📌 Guardar token
+          localStorage.setItem('authToken', response.token); //Guardar token
         }
       }),
       catchError((err) => {
@@ -37,7 +37,7 @@ export class AuthService {
     console.log('Enviando al backend:', { NAME: name, EMAIL: email, PASSWORD: password });
 
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    const body = { NAME: name, EMAIL: email, PASSWORD: password }; // 📌 Usar nombres correctos
+    const body = { NAME: name, EMAIL: email, PASSWORD: password }; //Usar nombres correctos
 
     return this.http.post<any>(this.apiRegisterUrl, body, { headers }).pipe(
       tap((response) => {
