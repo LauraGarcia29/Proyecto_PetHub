@@ -1,5 +1,102 @@
-<!-- dashboard.component.html -->
-<div>
-  <h1>Bienvenido al Dashboard</h1>
-  <p>¡Has iniciado sesión exitosamente!</p>
+<div class="container mt-4">
+  <h2 class="text-center">Bienvenido al Dashboard</h2>
+
+  <div *ngIf="userData">
+    <p class="text-center">Hola, <strong>{{ userData.NAME }}</strong>!</p>
+    <p class="text-center">Tu correo: <strong>{{ userData.EMAIL }}</strong></p>
+  </div>
+
+  <button class="btn btn-success" (click)="toggleFormulario()">
+  {{ mostrarFormulario ? 'Ocultar Formulario' : 'Registrar Mascota' }}
+</button>
+
+  <div *ngIf="mostrarFormulario" class="mt-4">
+  <h2>Registrar Mascota</h2>
+   
+  <div *ngIf="mensajeExito" class="alert alert-success text-center">
+  {{ mensajeExito }}
 </div>
+
+<div *ngIf="mensajeError" class="alert alert-danger text-center">
+  {{ mensajeError }}
+</div>
+
+  <form (ngSubmit)="agregarMascota()">
+    <div class="mb-3">
+      <label class="form-label">Nombre</label>
+      <input type="text" class="form-control" [(ngModel)]="petData.NAME" name="NAME" required>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Especie</label>
+      <select class="form-control" [(ngModel)]="petData.SPECIE" name="SPECIE" required>
+        <option value="perro">Perro</option>
+        <option value="gato">Gato</option>
+        <option value="ave">Ave</option>
+        <option value="otro">Otro</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Edad</label>
+      <input type="number" class="form-control" [(ngModel)]="petData.AGE" name="AGE" required>
+    </div>
+
+    
+    <button type="submit" class="btn btn-primary">Registrar</button>
+  </form>
+</div>
+
+<button class="btn btn-info" (click)="toggleFormularioCita()">
+  {{ mostrarFormularioCita ? 'Ocultar Formulario de Cita' : 'Agendar Cita' }}
+</button>
+
+<div *ngIf="mensajeExitoCita" class="alert alert-success text-center">
+  {{ mensajeExitoCita }}
+</div>
+
+<div *ngIf="mensajeErrorCita" class="alert alert-danger text-center">
+  {{ mensajeErrorCita }}
+</div>
+
+
+<div *ngIf="mostrarFormularioCita" class="mt-4">
+  <h2>Agendar Cita</h2>
+  <p>Recuerda que los horarios de atención son de Lunes a Viernes de 8:00 a.m a 5:00 p.m - Sabados de 9:00 a.m. a 1:00 p.m.</p>
+  <form (ngSubmit)="agendarCita()">
+    <div class="mb-3">
+      <label class="form-label">Fecha y Hora</label>
+      <input type="datetime-local" class="form-control" [(ngModel)]="appointmentData.DATE" name="DATE" required>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Tipo de Cita</label>
+      <select class="form-control" [(ngModel)]="appointmentData.TYPE" name="TYPE" required>
+        <option value="vacunación">Vacunación</option>
+        <option value="consulta">Consulta</option>
+        <option value="baño">Baño</option>
+        <option value="otro">Otro</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Mascota</label>
+      <select class="form-control" [(ngModel)]="appointmentData.PET_ID" name="PET_ID" required>
+        <option *ngFor="let mascota of mascotas" [value]="mascota.ID">{{ mascota.NAME }}</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Especialista</label>
+      <select class="form-control" [(ngModel)]="appointmentData.SPECIALIST_ID" name="SPECIALIST_ID" required>
+        <option *ngFor="let especialista of especialistas" [value]="especialista.ID">{{ especialista.NAME }}</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Registrar Cita</button>
+  </form>
+</div>
+
+  <button class="btn btn-danger" (click)="logout()">Cerrar sesión</button>
+</div>
+

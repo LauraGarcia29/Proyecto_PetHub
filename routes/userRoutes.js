@@ -15,5 +15,15 @@ router.get('/profile/session', (req, res) => {
     return res.status(200).json(req.session.user);
 });
 
+router.get('/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error('❌ Error al destruir sesión:', err);
+            return res.status(500).json({ error: 'Error al cerrar sesión' });
+        }
+        res.status(200).json({ message: '✅ Sesión cerrada correctamente' });
+    });
+});
+
 module.exports = router;
 
