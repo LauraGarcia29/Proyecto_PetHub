@@ -11,37 +11,6 @@ exports.createAppointment = (req, res) => {
 
     console.log("🔍 Día de la semana:", dayOfWeek, "Hora:", hour); // 🔍 Depuración
 
-    // 📌 Verificar que la cita sea en horarios permitidos
-    if (
-        (dayOfWeek >= 1 && dayOfWeek <= 5 && (hour < 8 || hour > 17)) || // Lunes a viernes de 8 AM a 5 PM
-        (dayOfWeek === 6 && (hour < 9 || hour > 13)) // Sábados de 9 AM a 1 PM
-    ) {
-        return res.status(400).json({ error: "Las citas solo pueden agendarse de lunes a viernes de 8 AM a 5 PM y sábados de 9 AM a 1 PM." });
-    }
-
-    // 📌 Verificar si ya existe una cita con el mismo especialista y misma fecha/hora
-    connection.query(
-        'SELECT COUNT(*) AS count FROM appointments WHERE SPECIALIST_ID = ? AND DATE = ? AND is_deleted = FALSE',
-        [SPECIALIST_ID, DATE],
-        (err, result) => {
-            if (err) return res.status(500).json({ error: err.message });
-
-            if (result[0].count > 0) {
-                return res.status(400).json({ error: "El especialista ya tiene una cita programada a esta hora." });
-            }
-
-            // 📌 Si no hay conflictos, proceder con la inserción
-            connection.query(
-                'INSERT INTO appointments (DATE, TYPE, PET_ID, USER_ID, SPECIALIST_ID) VALUES (?, ?, ?, ?, ?)',
-                [DATE, TYPE, PET_ID, ID, SPECIALIST_ID],
-                (err, result) => {
-                    if (err) return res.status(500).json({ error: err.message });
-
-                    res.status(201).json({ message: "Cita creada correctamente", citaId: result.insertId });
-                }
-            );
-        }
-    );
 };
 
 exports.getAppointments = (req, res) => {
@@ -51,6 +20,22 @@ exports.getAppointments = (req, res) => {
         }
         res.json(result);
     });
+    // 📌 Verificar que la cita sea en horarios permitidos
+    if ((dayOfWeek >= 1 && dayOfWeek <= 5 && (hour < 8 || hour > 17)) ||
+    (dayOfWeek === 6 && (hour < 9 || hour > 13))) {
+    console.warn("⚠️ Intento de cita fuera de horario: ", DATE);
+    return res.status(400).json({ error: "Las citas solo pueden agendarse en horarios permitidos." });
+}
+connection.query(
+    'SELECT COUNT(*) AS count FROM appointments WHERE SPECIALIST_ID = ? AND DATE = ? AND is_deleted = FALSE',
+    [SPECIALIST_ID, DATE],
+    (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+
+        if (result[0].count > 0) {
+            console.warn("⚠️ Intento de cita duplicada con el especialista:", SPECIALIST_ID, "Fecha:", DATE);
+            return res.status(400).json({ error: "El especialista ya tiene una cita programada en este horario." });
+        }})
 };
 
 exports.getAppointmentById = (req, res) => {

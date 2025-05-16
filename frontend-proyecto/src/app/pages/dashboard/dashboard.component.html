@@ -6,6 +6,7 @@
     <p class="text-center">Tu correo: <strong>{{ userData.EMAIL }}</strong></p>
   </div>
 
+  <!-- 📌 Botón registrar mascota -->
   <button class="btn btn-success" (click)="toggleFormulario()">
   {{ mostrarFormulario ? 'Ocultar Formulario' : 'Registrar Mascota' }}
 </button>
@@ -59,7 +60,7 @@
   {{ mensajeErrorCita }}
 </div>
 
-
+<!-- 📌 Botón Agregar cita -->
 <div *ngIf="mostrarFormularioCita" class="mt-4">
   <h2>Agendar Cita</h2>
   <p>Recuerda que los horarios de atención son de Lunes a Viernes de 8:00 a.m a 5:00 p.m - Sabados de 9:00 a.m. a 1:00 p.m.</p>
@@ -95,8 +96,191 @@
 
     <button type="submit" class="btn btn-primary">Registrar Cita</button>
   </form>
+
+<!-- 📌 Botón consultar tus mascota -->
 </div>
+<button class="btn btn-info" (click)="obtenerMisMascotas()">
+  Consultar Tus Mascotas
+</button>
+
+<div *ngIf="mensajeErrorMascotas" class="alert alert-danger text-center">
+  {{ mensajeErrorMascotas }}
+</div>
+
+<div *ngIf="mascotas.length">
+  <h2>Tus Mascotas</h2>
+  <ul class="list-group">
+    <li *ngFor="let mascota of mascotas" class="list-group-item">
+      <strong>Nombre:</strong> {{ mascota.NAME }}  
+      <br>
+      <strong>Tipo:</strong> {{ mascota.TYPE }}
+    </li>
+  </ul>
+</div>
+
+<!-- 📌 Botón consultar citas -->
+<button class="btn btn-primary" (click)="obtenerCitas()">
+  Consultar Citas
+</button>
+
+<div *ngIf="mensajeErrorCitas" class="alert alert-danger text-center">
+  {{ mensajeErrorCitas }}
+</div>
+
+<div *ngIf="citas.length">
+  <h2>Tus Citas</h2>
+  <ul class="list-group">
+    <li *ngFor="let cita of citas" class="list-group-item">
+      <strong>Fecha:</strong> {{ cita.DATE }}  
+      <br>
+      <strong>Tipo:</strong> {{ cita.TYPE }}  
+      <br>
+      <strong>Especialista:</strong> {{ cita.SPECIALIST_ID }}
+    </li>
+  </ul>
+</div>
+
+
+
+<!-- 📌 Botón para consultar todas las mascotas -->
+<button class="btn btn-success" (click)="obtenerTodasMascotas()">
+  Consultar Mascotas
+</button>
+
+<div *ngIf="mensajeErrorTodasMascotas" class="alert alert-danger text-center">
+  {{ mensajeErrorTodasMascotas }}
+</div>
+
+<div *ngIf="todasMascotas.length">
+  <h2>Listado de Mascotas</h2>
+  <ul class="list-group">
+    <li *ngFor="let mascota of todasMascotas" class="list-group-item">
+      <strong>Nombre:</strong> {{ mascota.NAME }}  
+      <br>
+      <strong>Tipo:</strong> {{ mascota.TYPE }}
+    </li>
+  </ul>
+</div>
+
+<!-- 📌 Botón para consultar citas del usuario -->
+<button class="btn btn-primary mt-3" (click)="obtenerMisCitas()">
+  Consultar Mis Citas
+</button>
+
+<div *ngIf="mensajeErrorMisCitas" class="alert alert-danger text-center">
+  {{ mensajeErrorMisCitas }}
+</div>
+
+<div *ngIf="misCitas.length">
+  <h2>Mis Citas</h2>
+  <ul class="list-group">
+    <li *ngFor="let cita of misCitas" class="list-group-item">
+      <strong>Fecha:</strong> {{ cita.DATE }}  
+      <br>
+      <strong>Tipo:</strong> {{ cita.TYPE }}  
+      <br>
+      <strong>Especialista:</strong> {{ cita.SPECIALIST_ID }}
+    </li>
+  </ul>
+</div>
+
+
+<!-- 📌 Botón para consultar citas por especialista -->
+<button class="btn btn-warning" (click)="obtenerCitasPorEspecialista()">
+  Consultar Citas por Especialista
+</button>
+
+<div *ngIf="mensajeErrorCitasEspecialista" class="alert alert-danger text-center">
+  {{ mensajeErrorCitasEspecialista }}
+</div>
+
+<div *ngIf="citasEspecialista.length">
+  <h2>Citas por Especialista</h2>
+  <ul class="list-group">
+    <li *ngFor="let cita of citasEspecialista" class="list-group-item">
+      <strong>Fecha:</strong> {{ cita.DATE }}  
+      <br>
+      <strong>Tipo:</strong> {{ cita.TYPE }}  
+      <br>
+      <strong>Usuario:</strong> {{ cita.USER_ID }}
+    </li>
+  </ul>
+</div>
+
+<!-- 📌 Botón para consultar usuarios -->
+<button class="btn btn-dark mt-3" (click)="obtenerUsuarios()">
+  Consultar Usuarios
+</button>
+
+<div *ngIf="mensajeErrorUsuarios" class="alert alert-danger text-center">
+  {{ mensajeErrorUsuarios }}
+</div>
+
+<div *ngIf="usuarios.length">
+  <h2>Usuarios Registrados</h2>
+  <ul class="list-group">
+    <li *ngFor="let usuario of usuarios" class="list-group-item">
+      <strong>Nombre:</strong> {{ usuario.NAME }}  
+      <br>
+      <strong>Email:</strong> {{ usuario.EMAIL }}  
+      <br>
+      <strong>Rol:</strong> {{ usuario.ROL }}
+    </li>
+  </ul>
+</div>
+
+<!-- 📌 Botón para actualizar mascota por ID -->
+<button class="btn btn-warning" (click)="actualizarMascota()">
+  Actualizar Mascota
+</button>
+
+<!-- 📌 Botón para actualizar cita por ID -->
+<button class="btn btn-primary" (click)="actualizarCita()">
+  Actualizar Cita
+</button>
+
+<!-- 📌 Botón para eliminar mascota por ID -->
+<button class="btn btn-danger" (click)="eliminarMascota()">
+  Eliminar Mascota
+</button>
+
+<!-- 📌 Botón para eliminar cita por ID -->
+<button class="btn btn-danger" (click)="eliminarCita()">
+  Eliminar Cita
+</button>
+
+<!-- 📌 Botón para consultar perfil en sesión -->
+<button class="btn btn-info" (click)="consultarPerfilSesion()">
+  Consultar Perfil en Sesión
+</button>
 
   <button class="btn btn-danger" (click)="logout()">Cerrar sesión</button>
 </div>
 
+<!-- 📌 Botones para el ADMIN -->
+<div *ngIf="rolUsuario === 'Admin'">
+  <button class="btn btn-success" (click)="agregarMascota()">Registrar Mascota</button>
+  <button class="btn btn-primary" (click)="agendarCita()">Agregar Cita</button>
+  <button class="btn btn-info" (click)="obtenerMisCitas()">Consultar Citas</button>
+  <button class="btn btn-warning" (click)="obtenerTodasMascotas()">Consultar Mascotas</button>
+  <button class="btn btn-dark" (click)="obtenerUsuarios()">Consultar Usuarios</button>
+  <button class="btn btn-warning" (click)="actualizarMascota()">Actualizar Mascotas</button>
+  <button class="btn btn-primary" (click)="actualizarCita()">Actualizar Citas</button>
+  <button class="btn btn-danger" (click)="eliminarMascota()">Eliminar Mascotas</button>
+  <button class="btn btn-danger" (click)="eliminarCita()">Eliminar Citas</button>
+ <button class="btn btn-info" (click)="obtenerPerfilSesion()">Consultar Perfil en Sesión</button>
+</div>
+
+<!-- 📌 Botones para el USER -->
+<div *ngIf="rolUsuario === 'User'">
+  <button class="btn btn-success" (click)="agregarMascota()">Registrar Mascota</button>
+  <button class="btn btn-primary" (click)="agendarCita()">Agendar Cita</button>
+  <button class="btn btn-info" (click)="obtenerMisMascotas()">Consultar Mis Mascotas</button>
+  <button class="btn btn-warning" (click)="obtenerMisCitas()">Consultar Mis Citas</button>
+</div>
+
+<!-- 📌 Botones para el SPECIALIST -->
+<div *ngIf="rolUsuario === 'Specialist'">
+  <button class="btn btn-info" (click)="obtenerCitasPorEspecialista()">Consultar Citas por Especialista</button>
+  <button class="btn btn-warning" (click)="actualizarMascota()">Actualizar Mascotas</button>
+</div>

@@ -84,3 +84,22 @@ exports.getAllUsers = (req, res) => {
         }
     );
 };
+
+
+exports.getSpecialists = async (req, res) => {
+    try {
+        const sql = 'SELECT ID, NAME, EMAIL FROM users WHERE ROL = "Specialist" AND is_deleted = FALSE';
+        
+        // 📌 Usamos Promises para evitar bloqueos y manejar errores mejor
+        const [results] = await connection.promise().query(sql);
+
+        if (!results.length) {
+            return res.status(404).json({ error: 'No hay especialistas registrados' });
+        }
+
+        res.status(200).json({ specialists: results });
+    } catch (error) {
+        console.error('❌ Error al obtener especialistas:', error);
+        res.status(500).json({ error: 'Error interno al obtener especialistas.' });
+    }
+};

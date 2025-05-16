@@ -6,7 +6,7 @@ const router = express.Router();
 
 // 🚀 Aplicar `verifyToken` en todas las rutas
 // ADMIN puede crear mascotas
-router.post('/pets', verifyToken, checkRole(['Admin']), petController.createPet);  
+router.post('/pets', verifyToken, checkRole(['Admin', 'User']), petController.createPet);  
 
 // ADMIN pueden ver mascotas generales
 router.get('/pets', verifyToken, checkRole(['Admin']), petController.getPets);

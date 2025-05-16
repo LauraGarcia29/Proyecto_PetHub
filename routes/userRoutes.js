@@ -6,6 +6,7 @@ const { verifyToken, checkRole } = require('../middlewares/authMiddleware'); // 
 router.get('/user/appointments', verifyToken, checkRole(['Admin', 'User']), userController.getUserAppointments);
 router.get('/user/pets', verifyToken, checkRole(['Admin', 'User']), userController.getUserPets);
 router.get('/admin/users', verifyToken, checkRole(['Admin']), userController.getAllUsers);
+router.get('/api/specialists', verifyToken, checkRole(['Admin', 'User']), userController.getSpecialists);
 
 router.get('/profile/session', (req, res) => {
     if (!req.session || !req.session.user) { // 📌 Verificación más robusta
