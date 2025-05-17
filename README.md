@@ -37,7 +37,6 @@
 <li>✅ Actualizaci&oacute;n o cancelaci&oacute;n de citas cuando sea necesario <em>(🛠️en arquitectura - Front).</em></li>
 </ul>
 </li>
-</ul>
 <li><strong>🔍 Consultas Administrativas:</strong>
 <ul>
 <li>✅ Los administradores pueden gestionar usuarios, consultas y citas<em> (🛠️en arquitectura - Front).</em></li>
