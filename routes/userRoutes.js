@@ -1,25 +1,28 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-const { verifyToken, checkRole } = require('../middlewares/authMiddleware'); // ✅ Ahora importa `checkRole`
+const { verifyToken, checkRole } = require('../middlewares/authMiddleware'); 
 
+// 👩🏻‍🦰 Rutas para obtener información de usuarios
 router.get('/user/appointments', verifyToken, checkRole(['Admin', 'User']), userController.getUserAppointments);
 router.get('/user/pets', verifyToken, checkRole(['Admin', 'User']), userController.getUserPets);
 router.get('/admin/users', verifyToken, checkRole(['Admin']), userController.getAllUsers);
-router.get('/api/specialists', verifyToken, checkRole(['Admin', 'User']), userController.getSpecialists);
+router.get('/specialists', verifyToken, checkRole(['Admin', 'User']), userController.getSpecialists);
 
-router.get('/profile/session', (req, res) => {
-    if (!req.session || !req.session.user) { // 📌 Verificación más robusta
+// 👩🏻‍🦰 Obtener datos de sesión del usuario autenticado
+router.get('/profile/session', verifyToken, (req, res) => {
+    if (!req.session || !req.session.user) {
         return res.status(403).json({ error: 'No hay sesión activa' });
     }
 
-    return res.status(200).json(req.session.user);
+    res.status(200).json(req.session.user);
 });
 
-router.get('/logout', (req, res) => {
+// 👩🏻‍🦰 Cerrar sesión del usuario
+router.get('/logout', verifyToken, (req, res) => {
     req.session.destroy((err) => {
         if (err) {
-            console.error('❌ Error al destruir sesión:', err);
+            console.error('❌ Error al cerrar sesión:', err);
             return res.status(500).json({ error: 'Error al cerrar sesión' });
         }
         res.status(200).json({ message: '✅ Sesión cerrada correctamente' });
@@ -27,4 +30,3 @@ router.get('/logout', (req, res) => {
 });
 
 module.exports = router;
-

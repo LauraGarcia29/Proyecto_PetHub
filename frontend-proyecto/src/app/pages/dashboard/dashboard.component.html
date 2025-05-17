@@ -97,7 +97,7 @@
     <button type="submit" class="btn btn-primary">Registrar Cita</button>
   </form>
 
-<!-- 📌 Botón consultar tus mascota -->
+<!-- 📌 Botón consultar tus mascota 
 </div>
 <button class="btn btn-info" (click)="obtenerMisMascotas()">
   Consultar Tus Mascotas
@@ -116,9 +116,9 @@
       <strong>Tipo:</strong> {{ mascota.TYPE }}
     </li>
   </ul>
-</div>
+</div>-->
 
-<!-- 📌 Botón consultar citas -->
+<!-- 📌 Botón consultar citas
 <button class="btn btn-primary" (click)="obtenerCitas()">
   Consultar Citas
 </button>
@@ -138,11 +138,11 @@
       <strong>Especialista:</strong> {{ cita.SPECIALIST_ID }}
     </li>
   </ul>
-</div>
+</div> -->
 
 
 
-<!-- 📌 Botón para consultar todas las mascotas -->
+<!-- 📌 Botón para consultar todas las mascotas
 <button class="btn btn-success" (click)="obtenerTodasMascotas()">
   Consultar Mascotas
 </button>
@@ -160,9 +160,9 @@
       <strong>Tipo:</strong> {{ mascota.TYPE }}
     </li>
   </ul>
-</div>
+</div> -->
 
-<!-- 📌 Botón para consultar citas del usuario -->
+<!-- 📌 Botón para consultar citas del usuario 
 <button class="btn btn-primary mt-3" (click)="obtenerMisCitas()">
   Consultar Mis Citas
 </button>
@@ -182,10 +182,10 @@
       <strong>Especialista:</strong> {{ cita.SPECIALIST_ID }}
     </li>
   </ul>
-</div>
+</div>-->
 
 
-<!-- 📌 Botón para consultar citas por especialista -->
+<!-- 📌 Botón para consultar citas por especialista 
 <button class="btn btn-warning" (click)="obtenerCitasPorEspecialista()">
   Consultar Citas por Especialista
 </button>
@@ -205,9 +205,9 @@
       <strong>Usuario:</strong> {{ cita.USER_ID }}
     </li>
   </ul>
-</div>
+</div> -->
 
-<!-- 📌 Botón para consultar usuarios -->
+<!-- 📌 Botón para consultar usuarios 
 <button class="btn btn-dark mt-3" (click)="obtenerUsuarios()">
   Consultar Usuarios
 </button>
@@ -227,37 +227,44 @@
       <strong>Rol:</strong> {{ usuario.ROL }}
     </li>
   </ul>
-</div>
+</div> -->
 
-<!-- 📌 Botón para actualizar mascota por ID -->
+<!-- 📌 Botón para actualizar mascota por ID 
 <button class="btn btn-warning" (click)="actualizarMascota()">
   Actualizar Mascota
-</button>
+</button>-->
 
-<!-- 📌 Botón para actualizar cita por ID -->
+<!-- 📌 Botón para actualizar cita por ID 
 <button class="btn btn-primary" (click)="actualizarCita()">
   Actualizar Cita
-</button>
+</button>-->
 
-<!-- 📌 Botón para eliminar mascota por ID -->
+<!-- 📌 Botón para eliminar mascota por ID 
 <button class="btn btn-danger" (click)="eliminarMascota()">
   Eliminar Mascota
-</button>
+</button>-->
 
-<!-- 📌 Botón para eliminar cita por ID -->
+<!-- 📌 Botón para eliminar cita por ID 
 <button class="btn btn-danger" (click)="eliminarCita()">
   Eliminar Cita
-</button>
+</button>-->
 
-<!-- 📌 Botón para consultar perfil en sesión -->
+<!-- 📌 Botón para consultar perfil en sesión 
 <button class="btn btn-info" (click)="consultarPerfilSesion()">
   Consultar Perfil en Sesión
-</button>
+</button> -->
+
+<!--🚨⚠️NOTA: Se bloquean botones adicionales porque se debe verificar conexión a servicio Back 
+(✋🏻prometo revisar arreglar )-->  
+
+
 
   <button class="btn btn-danger" (click)="logout()">Cerrar sesión</button>
 </div>
 
-<!-- 📌 Botones para el ADMIN -->
+
+
+<!-- 📌 Botones para el ADMIN 
 <div *ngIf="rolUsuario === 'Admin'">
   <button class="btn btn-success" (click)="agregarMascota()">Registrar Mascota</button>
   <button class="btn btn-primary" (click)="agendarCita()">Agregar Cita</button>
@@ -269,18 +276,21 @@
   <button class="btn btn-danger" (click)="eliminarMascota()">Eliminar Mascotas</button>
   <button class="btn btn-danger" (click)="eliminarCita()">Eliminar Citas</button>
  <button class="btn btn-info" (click)="obtenerPerfilSesion()">Consultar Perfil en Sesión</button>
-</div>
+</div>-->
 
-<!-- 📌 Botones para el USER -->
+<!-- 📌 Botones para el USER
 <div *ngIf="rolUsuario === 'User'">
   <button class="btn btn-success" (click)="agregarMascota()">Registrar Mascota</button>
   <button class="btn btn-primary" (click)="agendarCita()">Agendar Cita</button>
   <button class="btn btn-info" (click)="obtenerMisMascotas()">Consultar Mis Mascotas</button>
   <button class="btn btn-warning" (click)="obtenerMisCitas()">Consultar Mis Citas</button>
-</div>
+</div>  -->
 
-<!-- 📌 Botones para el SPECIALIST -->
+<!-- 📌 Botones para el SPECIALIST
 <div *ngIf="rolUsuario === 'Specialist'">
   <button class="btn btn-info" (click)="obtenerCitasPorEspecialista()">Consultar Citas por Especialista</button>
   <button class="btn btn-warning" (click)="actualizarMascota()">Actualizar Mascotas</button>
-</div>
+</div>-->  
+
+<!--🚨⚠️ NOTA: estoy tratando de poner botones segun permisos de roles pero debo revisarlo 
+por eso esta comentado para que no dañe usabilidad por el momento (✋🏻prometo revisar arreglar ) -->  

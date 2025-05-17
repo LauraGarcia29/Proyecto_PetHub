@@ -1,41 +1,58 @@
+require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const sequelize = require('./db'); 
 
 const app = express();
 
-require('dotenv').config(); // Cargar variables de entorno
-
-// Habilitar CORS globalmente
+// 📌 Configuración de CORS
 app.use(cors({
-  origin: 'http://localhost:4200', // Permitir solo el origen de tu frontend
-  methods: ['GET', 'POST'], // Métodos permitidos
-  credentials: true, // Para enviar cookies en solicitudes
+  origin: process.env.CLIENT_URL || 'http://localhost:4200',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true,
 }));
 
-app.use(express.json()); // Necesario para procesar JSON
+app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
+// 📌 Configuración de sesiones
 app.use(session({
-  secret: 'tu_clave_secreta', // 📌 Clave para firmar las sesiones
-  resave: false, // 🔹 Evita guardar la sesión si no hay cambios
-  saveUninitialized: true, // 🔹 Guarda sesiones nuevas automáticamente
-  //cookie: {maxAge: 6000}
-  cookie: { secure: false }  // 📌 Usa "true" si estás en producción con HTTPS
+  secret: process.env.SESSION_SECRET || 'clave_secreta_default',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: process.env.NODE_ENV === 'production' } // ✅ Solo seguro en producción
 }));
 
+// 📌 Sincronizar modelos con la base de datos
+const syncDB = async () => {
+  try {
+    await sequelize.sync();
+    console.log('📦 Base de datos sincronizada correctamente');
+  } catch (error) {
+    console.error('⚠️ Error al sincronizar la base de datos:', error);
+    process.exit(1); // ✅ Sale del proceso si la conexión falla
+  }
+};
+
+syncDB();
+
+// 📌 Importar rutas
 const authRoutes = require('./routes/authRoutes');
 const petRoutes = require('./routes/petRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
-const userRoutes = require('./routes/userRoutes'); // Agregar las rutas de usuario
+const userRoutes = require('./routes/userRoutes');
 
-app.use(userRoutes);
-app.use('/api', authRoutes); // Cargar rutas de autenticación
-app.use('/api', petRoutes); // Cargar rutas de mascotas
-app.use('/api', appointmentRoutes); // Cargar rutas de citas
-app.use('/api', userRoutes); //Cargar rutas de usuario
+app.use('/api', authRoutes);
+app.use('/api', petRoutes);
+app.use('/api', appointmentRoutes);
+app.use('/api', userRoutes);
 
+// 📌 Configurar puerto
+const PORT = process.env.PORT || 3000;
 
-app.listen(3000, () => {
-  console.log('🚀 Servidor corriendo en http://localhost:3000');
+// 📌 Iniciar servidor después de sincronización
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });

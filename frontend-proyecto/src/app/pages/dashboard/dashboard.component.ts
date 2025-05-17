@@ -126,7 +126,8 @@
     });
   }
 
-
+//🚨⚠️ NOTA: De aqui para abajo debo revisar las conexiones con back porque
+//  me estan generando error pero no los comente (🫣por pereza🫣) pero inhabilite los botones 
   mascotas: any[] = [];
 mensajeErrorMascotas = '';
 

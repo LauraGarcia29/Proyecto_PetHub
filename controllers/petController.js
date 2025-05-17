@@ -1,102 +1,119 @@
-const connection = require('../db'); // ✅ Importar la conexión a la base de datos
 const Pet = require('../models/pet');
+const sequelize = require('../db'); //Importa la conexión a la base de datos
 
-exports.createPet = (req, res) => {
-  const { NAME, SPECIE, AGE, USER_ID } = req.body;
+// 🐶 Crear una mascota
+exports.createPet = async (req, res) => {
+  try {
+    const { NAME, SPECIE, AGE, USER_ID } = req.body; 
+    if (!NAME || !SPECIE || !AGE || !USER_ID) {
+      return res.status(400).json({ error: 'Todos los campos son requeridos' });
+    }
 
-  if (!NAME|| !SPECIE || !AGE || !USER_ID) {
-    return res.status(400).json({ error: 'Todos los campos son requeridos' });
+    const nuevaMascota = await Pet.create({ NAME, SPECIE, AGE, USER_ID });
+    res.status(201).json({ message: 'Mascota registrada', id: nuevaMascota.ID });
+  } catch (error) {
+    console.error('❌ Error al crear la mascota:', error);
+    res.status(500).json({ error: error.message });
   }
-
-  Pet.create(NAME, SPECIE, AGE, USER_ID, (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.status(201).json({ message: 'Mascota registrada', id: result.insertId });
-  });
 };
 
-exports.getPets = (req, res) => {
-  Pet.getAll((err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
-  });
+// 🐶 Obtener todas las mascotas
+exports.getPets = async (req, res) => {
+  try {
+    const mascotas = await Pet.findAll({ where: { is_deleted: false } });
+    res.json(mascotas);
+  } catch (error) {
+    console.error('❌ Error al obtener mascotas:', error);
+    res.status(500).json({ error: error.message });
+  }
 };
 
-exports.getPetById = (req, res) => {
-  const { id } = req.params;
+// 🐶 Obtener una mascota por ID
+exports.getPetById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const mascota = await Pet.findOne({ where: { ID: id, is_deleted: false } });
 
-  Pet.getById(id, (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-    if (!result.length) return res.status(404).json({ error: 'Mascota no encontrada' });
-    res.json(result[0]);
-  });
-};
-
-exports.softDeletePet = (req, res) => {
-    const petId = req.params.id;
-
-    connection.query(
-        'UPDATE pets SET is_deleted = TRUE WHERE ID = ?',
-        [petId],
-        (err, result) => {
-            if (err) return res.status(500).json({ error: err.message });
-            if (result.affectedRows === 0) return res.status(404).json({ error: 'Mascota no encontrada' });
-
-            return res.status(200).json({ message: 'Mascota marcada como eliminada' });
-        }
-    );
-};
-
-exports.updatePet = (req, res) => {
-    const petId = req.params.id; // ✅ Extrae correctamente el ID de la mascota desde la URL
-    const { NAME, SPECIE, AGE } = req.body;
-
-    console.log("🔍 ID de la mascota recibido en UPDATE:", petId); // 🔍 Verifica que el ID es el correcto
-
-    connection.query(
-        'UPDATE pets SET NAME = ?, SPECIE = ?, AGE = ? WHERE ID = ?',
-        [NAME, SPECIE, AGE, petId], // ✅ Usa `petId` en lugar de `req.session.user.ID`
-        (err, result) => {
-            if (err) return res.status(500).json({ error: err.message });
-
-            if (result.affectedRows === 0) {
-                return res.status(404).json({ error: 'Mascota no encontrada' });
-            }
-
-            return res.status(200).json({ message: 'Mascota actualizada correctamente' });
-        }
-    );
-};
-
-
-
-exports.deletePet = (req, res) => {
-  const { ID } = req.params;
-  
-  console.log('🔍 ID recibido en DELETE:', ID); // 🔥 Verifica qué está recibiendo
-
-  Pet.getById(ID, (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-
-    if (!result.length) {
+    if (!mascota) {
       return res.status(404).json({ error: 'Mascota no encontrada' });
     }
 
-    Pet.delete(ID, (err) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({ message: 'Mascota eliminada correctamente' });
-    });
-  });
+    res.json(mascota);
+  } catch (error) {
+    console.error('❌ Error al obtener la mascota:', error);
+    res.status(500).json({ error: error.message });
+  }
 };
 
-exports.getUserPets = (req, res) => {
-    const { ID } = req.session.user;
+// 🐶 Actualizar una mascota
+exports.updatePet = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { NAME, SPECIE, AGE } = req.body;
 
-    connection.query(
-        'SELECT * FROM pets WHERE USER_ID = ? AND is_deleted = FALSE',
-        [ID],
-        (err, result) => {
-            if (err) return res.status(500).json({ error: err.message });
-            res.json({ mascotas: result });
-        }
-    );
+    const mascota = await Pet.findOne({ where: { ID: id, is_deleted: false } });
+    if (!mascota) {
+      return res.status(404).json({ error: 'Mascota no encontrada' });
+    }
+
+    await mascota.update({ NAME, SPECIE, AGE });
+    res.status(200).json({ message: 'Mascota actualizada correctamente' });
+  } catch (error) {
+    console.error('❌ Error al actualizar mascota:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// 🐶 Soft delete de una mascota
+exports.softDeletePet = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const mascota = await Pet.findByPk(id);
+
+    if (!mascota) {
+      return res.status(404).json({ error: 'Mascota no encontrada' });
+    }
+
+    await mascota.update({ is_deleted: true });
+    res.status(200).json({ message: 'Mascota marcada como eliminada' });
+  } catch (error) {
+    console.error('❌ Error al eliminar mascota:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// 🐶 Eliminar una mascota de la base de datos
+exports.deletePet = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const mascota = await Pet.findByPk(id);
+
+    if (!mascota) {
+      return res.status(404).json({ error: 'Mascota no encontrada' });
+    }
+
+    await mascota.destroy();
+    res.status(200).json({ message: 'Mascota eliminada permanentemente' });
+  } catch (error) {
+    console.error('❌ Error al eliminar mascota:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// 🐶 Obtener todas las mascotas de un usuario
+exports.getUserPets = async (req, res) => {
+  try {
+    const userId = req.params.userId || req.session.user?.ID;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'El ID de usuario es requerido' });
+    }
+
+    const mascotas = await Pet.findAll({ where: { USER_ID: userId, is_deleted: false } });
+
+    res.json({ mascotas });
+  } catch (error) {
+    console.error('❌ Error al obtener mascotas del usuario:', error);
+    res.status(500).json({ error: 'Error interno' });
+  }
 };

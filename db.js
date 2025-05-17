@@ -1,20 +1,29 @@
 require('dotenv').config();
-const mysql = require('mysql2');
+console.log('⚡ Cargando variables de entorno:');
+console.log('Host:', process.env.DATABASE_HOST);
+console.log('Usuario:', process.env.DATABASE_USER);
+console.log('Base de datos:', process.env.DATABASE_NAME);
+console.log('Dialect:', process.env.DATABASE_DIALECT);
+const { Sequelize } = require('sequelize');
 
-const connection = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT
+const sequelize = new Sequelize(process.env.DATABASE_NAME, process.env.DATABASE_USER, process.env.DATABASE_PASSWORD, {
+    host: process.env.DATABASE_HOST,
+    dialect: process.env.DATABASE_DIALECT || 'mysql',
+    port: process.env.DATABASE_PORT || 3306,
+    logging: process.env.NODE_ENV === 'development'
 });
 
-connection.connect((err) => {
-  if (err) {
-    console.error('❌ Error conectando a MySQL:', err);
-  } else {
-    console.log('🚀 Conexión a MySQL exitosa!');
-  }
-});
+// Verificar la conexión
+const connectDB = async () => {
+    try {
+        await sequelize.authenticate();
+        console.log('🚀 Conexión con MySQL usando Sequelize establecida correctamente!');
+    } catch (error) {
+        console.error('❌ Error al conectar con MySQL:', error);
+        process.exit(1); // ✅ Sale del proceso si la conexión falla
+    }
+};
 
-module.exports = connection;
+connectDB();
+
+module.exports = sequelize;

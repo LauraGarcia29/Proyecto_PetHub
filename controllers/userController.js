@@ -1,105 +1,92 @@
-const connection = require('../db');
+const User = require('../models/user');
+const Pet = require('../models/pet');
+const Appointment = require('../models/appointment');
 
-exports.getUserAppointments = (req, res) => {
+// 👩🏻‍🦰 Obtener citas del usuario autenticado
+exports.getUserAppointments = async (req, res) => {
+  try {
     const { ID } = req.session.user;
+    const citas = await Appointment.findAll({ where: { USER_ID: ID, is_deleted: false } });
 
-    connection.query(
-        'SELECT * FROM appointments WHERE USER_ID = ? AND is_deleted = FALSE', // ✅ Filtra solo citas activas
-        [ID],
-        (err, result) => {
-            if (err) return res.status(500).json({ error: err.message });
-
-            if (!result.length) {
-                return res.status(404).json({ error: 'No tienes citas activas' });
-            }
-
-            res.json({ citas: result });
-        }
-    );
-};
-
-exports.getUserPets = (req, res) => {
-    const { ID } = req.session.user; // ✅ Obtener el ID del usuario autenticado
-
-    console.log("📌 Buscando mascotas del usuario con ID:", ID);
-
-    connection.query(
-        'SELECT * FROM pets WHERE USER_ID = ?',
-        [ID],
-        (err, result) => {
-            if (err) return res.status(500).json({ error: err.message });
-
-            if (!result || result.length === 0) {
-                return res.status(404).json({ error: 'No tienes mascotas registradas' });
-            }
-
-            res.status(200).json({ mascotas: result });
-        }
-    );
-};
-exports.softDeleteUser = (req, res) => {
-    const userId = req.params.id;
-
-    connection.query(
-        'UPDATE users SET is_deleted = TRUE WHERE ID = ?',
-        [userId],
-        (err, result) => {
-            if (err) return res.status(500).json({ error: err.message });
-            if (result.affectedRows === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
-
-            return res.status(200).json({ message: 'Usuario marcado como eliminado' });
-        }
-    );
-};
-
-exports.getUserPets = (req, res) => {
-    const { ID } = req.session.user;
-
-    connection.query(
-        'SELECT * FROM pets WHERE USER_ID = ? AND is_deleted = FALSE', // ✅ Filtra solo mascotas activas
-        [ID],
-        (err, result) => {
-            if (err) return res.status(500).json({ error: err.message });
-
-            if (!result.length) {
-                return res.status(404).json({ error: 'No tienes mascotas registradas' });
-            }
-
-            res.json({ mascotas: result });
-        }
-    );
-};
-
-exports.getAllUsers = (req, res) => {
-    connection.query(
-        'SELECT ID, NAME, EMAIL, ROL FROM users WHERE is_deleted = FALSE', // ✅ Filtra solo usuarios activos
-        (err, result) => {
-            if (err) return res.status(500).json({ error: err.message });
-
-            if (!result.length) {
-                return res.status(404).json({ error: 'No hay usuarios registrados' });
-            }
-
-            res.json({ usuarios: result });
-        }
-    );
-};
-
-
-exports.getSpecialists = async (req, res) => {
-    try {
-        const sql = 'SELECT ID, NAME, EMAIL FROM users WHERE ROL = "Specialist" AND is_deleted = FALSE';
-        
-        // 📌 Usamos Promises para evitar bloqueos y manejar errores mejor
-        const [results] = await connection.promise().query(sql);
-
-        if (!results.length) {
-            return res.status(404).json({ error: 'No hay especialistas registrados' });
-        }
-
-        res.status(200).json({ specialists: results });
-    } catch (error) {
-        console.error('❌ Error al obtener especialistas:', error);
-        res.status(500).json({ error: 'Error interno al obtener especialistas.' });
+    if (!citas.length) {
+      return res.status(404).json({ error: 'No tienes citas activas' });
     }
+
+    res.json({ citas });
+  } catch (error) {
+    console.error('❌ Error al obtener citas:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// 👩🏻‍🦰 Obtener mascotas del usuario autenticado
+exports.getUserPets = async (req, res) => {
+  try {
+    const { ID } = req.session.user;
+    const mascotas = await Pet.findAll({ where: { USER_ID: ID, is_deleted: false } });
+
+    if (!mascotas.length) {
+      return res.status(404).json({ error: 'No tienes mascotas registradas' });
+    }
+
+    res.json({ mascotas });
+  } catch (error) {
+    console.error('❌ Error al obtener mascotas:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+// 👩🏻‍🦰 Marcar usuario como eliminado (Soft Delete)
+exports.softDeleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const usuario = await User.findByPk(id);
+
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    await usuario.update({ is_deleted: true });
+    res.status(200).json({ message: 'Usuario marcado como eliminado' });
+  } catch (error) {
+    console.error('❌ Error al eliminar usuario:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// 👩🏻‍🦰 Obtener todos los usuarios activos
+exports.getAllUsers = async (req, res) => {
+  try {
+    const usuarios = await User.findAll({
+      where: { is_deleted: false },
+      attributes: ['ID', 'NAME', 'EMAIL', 'ROL']
+    });
+
+    if (!usuarios.length) {
+      return res.status(404).json({ error: 'No hay usuarios registrados' });
+    }
+
+    res.json({ usuarios });
+  } catch (error) {
+    console.error('❌ Error al obtener usuarios:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// 👩🏻‍🦰 Obtener especialistas activos
+exports.getSpecialists = async (req, res) => {
+  try {
+    const especialistas = await User.findAll({
+      where: { ROL: 'Specialist', is_deleted: false },
+      attributes: ['ID', 'NAME', 'EMAIL']
+    });
+
+    if (!especialistas.length) {
+      return res.status(404).json({ error: 'No hay especialistas registrados' });
+    }
+
+    res.status(200).json({ specialists: especialistas });
+  } catch (error) {
+    console.error('❌ Error al obtener especialistas:', error);
+    res.status(500).json({ error: 'Error interno al obtener especialistas.' });
+  }
 };

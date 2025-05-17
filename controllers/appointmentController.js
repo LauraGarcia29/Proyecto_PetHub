@@ -1,155 +1,167 @@
+const { QueryTypes } = require('sequelize');
 const Appointment = require('../models/appointment');
-const moment = require('moment'); // ✅ Necesitamos moment.js para manejar fechas
+const sequelize = require('../db'); // Importa la conexión a la base de datos
+const moment = require('moment'); //  Necesario para manejar fechas
 
-exports.createAppointment = (req, res) => {
+// 📅 Crear una cita
+exports.createAppointment = async (req, res) => {
+  try {
     const { DATE, TYPE, PET_ID, SPECIALIST_ID } = req.body;
     const { ID } = req.session.user; // ID del usuario autenticado
 
-    const appointmentDate = moment(DATE); // 📌 Convertir la fecha a un objeto moment.js
-    const dayOfWeek = appointmentDate.day(); // 📌 Obtener el día de la semana (0 = Domingo, 1 = Lunes, ..., 6 = Sábado)
-    const hour = appointmentDate.hour(); // 📌 Obtener la hora de la cita
+    // 📅 Convertir la fecha a formato manejable y validar horario
+    const appointmentDate = moment(DATE);
+    const dayOfWeek = appointmentDate.day();
+    const hour = appointmentDate.hour();
 
     console.log("🔍 Día de la semana:", dayOfWeek, "Hora:", hour); // 🔍 Depuración
 
-};
-
-exports.getAppointments = (req, res) => {
-    Appointment.getAll((err, result) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.json(result);
-    });
-    // 📌 Verificar que la cita sea en horarios permitidos
-    if ((dayOfWeek >= 1 && dayOfWeek <= 5 && (hour < 8 || hour > 17)) ||
-    (dayOfWeek === 6 && (hour < 9 || hour > 13))) {
-    console.warn("⚠️ Intento de cita fuera de horario: ", DATE);
-    return res.status(400).json({ error: "Las citas solo pueden agendarse en horarios permitidos." });
-}
-connection.query(
-    'SELECT COUNT(*) AS count FROM appointments WHERE SPECIALIST_ID = ? AND DATE = ? AND is_deleted = FALSE',
-    [SPECIALIST_ID, DATE],
-    (err, result) => {
-        if (err) return res.status(500).json({ error: err.message });
-
-        if (result[0].count > 0) {
-            console.warn("⚠️ Intento de cita duplicada con el especialista:", SPECIALIST_ID, "Fecha:", DATE);
-            return res.status(400).json({ error: "El especialista ya tiene una cita programada en este horario." });
-        }})
-};
-
-exports.getAppointmentById = (req, res) => {
-    const { id } = req.params;
-
-    Appointment.getById(id, (err, result) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        if (!result || result.length === 0) {
-            return res.status(404).json({ error: 'Cita no encontrada' });
-        }
-
-        res.json(result[0]);
-    });
-};
-
-exports.getSpecialistAppointments = (req, res) => {
-    console.log("📌 Usuario en sesión:", req.session.user); // 🔍 Verifica qué datos tiene la sesión
-
-    const { ID, ROL } = req.session.user; // ✅ Ahora `ID` estará correctamente asignado
-
-    if (ROL !== 'Specialist') {
-        return res.status(403).json({ error: 'Acceso denegado: Solo especialistas pueden ver sus citas' });
+    // 📅 Verificación de horarios permitidos
+    if ((dayOfWeek >= 1 && dayOfWeek <= 5 && (hour < 8 || hour > 17)) || 
+        (dayOfWeek === 6 && (hour < 9 || hour > 13))) {
+      console.warn("⚠️ Intento de cita fuera de horario:", DATE);
+      return res.status(400).json({ error: "Las citas solo pueden agendarse en horarios permitidos." });
     }
 
-    console.log("📌 Buscando citas para SPECIALIST_ID:", ID); // 🔍 Confirma que el ID ahora tiene valor
-
-    Appointment.getBySpecialistId(ID, (err, result) => {
-        if (err) return res.status(500).json({ error: err.message });
-
-        console.log("📌 Resultados obtenidos:", result); // 🔍 Verifica qué devuelve la base de datos
-
-        if (!result || result.length === 0) return res.status(404).json({ error: 'No hay citas asignadas' });
-
-        return res.status(200).json({ citas: result }); // ✅ Asegura que la API devuelva las citas correctamente
+    // 📅 Verificación de disponibilidad del especialista
+    const existingAppointment = await Appointment.findOne({
+      where: { SPECIALIST_ID, DATE, is_deleted: false }
     });
+
+    if (existingAppointment) {
+      console.warn("⚠️ Intento de cita duplicada con el especialista:", SPECIALIST_ID, "Fecha:", DATE);
+      return res.status(400).json({ error: "El especialista ya tiene una cita programada en este horario." });
+    }
+
+    const newAppointment = await Appointment.create({ DATE, TYPE, PET_ID, SPECIALIST_ID, USER_ID: ID });
+    res.status(201).json({ message: 'Cita creada correctamente', id: newAppointment.ID });
+
+  } catch (error) {
+    console.error('❌ Error al crear la cita:', error);
+    res.status(500).json({ error: error.message });
+  }
 };
 
-exports.softDeleteAppointment = (req, res) => {
-    const appointmentId = req.params.id;
-
-    connection.query(
-        'UPDATE appointments SET is_deleted = TRUE WHERE ID = ?',
-        [appointmentId],
-        (err, result) => {
-            if (err) return res.status(500).json({ error: err.message });
-            if (result.affectedRows === 0) return res.status(404).json({ error: 'Cita no encontrada' });
-
-            return res.status(200).json({ message: 'Cita marcada como eliminada' });
-        }
-    );
+// 📅 Obtener todas las citas
+exports.getAppointments = async (req, res) => {
+  try {
+    const citas = await Appointment.findAll({ where: { is_deleted: false } });
+    res.json(citas);
+  } catch (error) {
+    console.error('❌ Error al obtener citas:', error);
+    res.status(500).json({ error: error.message });
+  }
 };
 
-exports.updateAppointment = (req, res) => {
+// 📅 Obtener una cita por ID
+exports.getAppointmentById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const cita = await Appointment.findOne({ where: { ID: id, is_deleted: false } });
+
+    if (!cita) {
+      return res.status(404).json({ error: 'Cita no encontrada' });
+    }
+
+    res.json(cita);
+  } catch (error) {
+    console.error('❌ Error al obtener la cita:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// 📅 Obtener citas de un especialista
+exports.getSpecialistAppointments = async (req, res) => {
+  try {
+    const { ID, ROL } = req.session.user;
+
+    if (ROL !== 'Specialist') {
+      return res.status(403).json({ error: 'Acceso denegado: Solo especialistas pueden ver sus citas' });
+    }
+
+    const citas = await Appointment.findAll({ where: { SPECIALIST_ID: ID, is_deleted: false } });
+
+    if (!citas.length) {
+      return res.status(404).json({ error: 'No hay citas asignadas' });
+    }
+
+    res.json({ citas });
+
+  } catch (error) {
+    console.error('❌ Error al obtener citas del especialista:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// 📅 Soft delete de una cita
+exports.softDeleteAppointment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const cita = await Appointment.findByPk(id);
+
+    if (!cita) {
+      return res.status(404).json({ error: 'Cita no encontrada' });
+    }
+
+    await cita.update({ is_deleted: true });
+    res.status(200).json({ message: 'Cita marcada como eliminada' });
+
+  } catch (error) {
+    console.error('❌ Error al eliminar cita:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// 📅 Actualizar una cita
+exports.updateAppointment = async (req, res) => {
+  try {
     const { DATE, TYPE } = req.body;
-    const { ID } = req.params;
-
-    Appointment.getById(ID, (err, result) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        if (!result || result.length === 0) {
-            return res.status(404).json({ error: 'Cita no encontrada' });
-        }
-
-        Appointment.update(ID, DATE, TYPE, (err) => {
-            if (err) {
-                return res.status(500).json({ error: err.message });
-            }
-            res.json({ message: 'Cita actualizada' });
-        });
-    });
-};
-
-exports.deleteAppointment = (req, res) => {
     const { id } = req.params;
 
-    Appointment.getById(id, (err, result) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        if (!result || result.length === 0) {
-            return res.status(404).json({ error: 'Cita no encontrada' });
-        }
+    const cita = await Appointment.findByPk(id);
 
-        Appointment.delete(id, (err) => {
-            if (err) {
-                return res.status(500).json({ error: err.message });
-            }
-            res.json({ message: 'Cita eliminada correctamente' });
-        });
-    });
+    if (!cita) {
+      return res.status(404).json({ error: 'Cita no encontrada' });
+    }
+
+    await cita.update({ DATE, TYPE });
+    res.json({ message: 'Cita actualizada correctamente' });
+
+  } catch (error) {
+    console.error('❌ Error al actualizar cita:', error);
+    res.status(500).json({ error: error.message });
+  }
 };
 
-exports.getUserAppointments = (req, res) => {
+// 📅 Eliminar una cita de la base de datos
+exports.deleteAppointment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const cita = await Appointment.findByPk(id);
+
+    if (!cita) {
+      return res.status(404).json({ error: 'Cita no encontrada' });
+    }
+
+    await cita.destroy();
+    res.json({ message: 'Cita eliminada correctamente' });
+
+  } catch (error) {
+    console.error('❌ Error al eliminar cita:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// 📅 Obtener citas de un usuario
+exports.getUserAppointments = async (req, res) => {
+  try {
     const { ID } = req.session.user;
+    const citas = await Appointment.findAll({ where: { USER_ID: ID, is_deleted: false } });
 
-    connection.query(
-        'SELECT * FROM appointments WHERE USER_ID = ? AND is_deleted = FALSE',
-        [ID],
-        (err, result) => {
-            if (err) return res.status(500).json({ error: err.message });
-            res.json({ citas: result });
-        }
-    );
+    res.json({ citas });
+
+  } catch (error) {
+    console.error('❌ Error al obtener citas del usuario:', error);
+    res.status(500).json({ error: error.message });
+  }
 };
-
-module.exports = {
-    createAppointment: exports.createAppointment,
-    getAppointments: exports.getAppointments,
-    getAppointmentById: exports.getAppointmentById,
-    updateAppointment: exports.updateAppointment,
-    deleteAppointment: exports.deleteAppointment,
-    getSpecialistAppointments: exports.getSpecialistAppointments
-};
-

@@ -1,63 +1,65 @@
-const connection = require('../db');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../db');  // Importa la conexión a la base de datos
 
-const Appointment = {
-    create: (DATE, TYPE, PET_ID, USER_ID, SPECIALIST_ID, callback) => {
-        connection.query(
-            'INSERT INTO appointments (DATE, TYPE, PET_ID, USER_ID, SPECIALIST_ID) VALUES (?, ?, ?, ?, ?)',
-            [DATE, TYPE, PET_ID, USER_ID, SPECIALIST_ID],
-            (err, result) => {
-                if (err) return callback(err, null);
-                callback(null, result);
-            }
-        );
+//📩 Definimos el modelo Appointment con Sequelize
+const Appointment = sequelize.define('Appointment', {
+    ID: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
     },
-
-   getBySpecialistId: (SPECIALIST_ID, callback) => {
-    console.log("Consultando citas para SPECIALIST_ID:", SPECIALIST_ID); // 🔍 Verifica el ID antes de ejecutar la consulta
-
-    connection.query(
-        'SELECT * FROM appointments WHERE SPECIALIST_ID = ?', 
-        [SPECIALIST_ID], 
-        (err, result) => {
-            if (err) return callback(err, null);
-            console.log("Resultados obtenidos:", result); // 🔍 Muestra lo que devuelve la BD
-            callback(null, result);
+    DATE: { 
+        type: DataTypes.DATE,
+        allowNull: false
+    },
+    TYPE: {
+        type: DataTypes.ENUM('consulta', 'vacunación', 'baño', 'otro'),
+        allowNull: false
+    },
+    PET_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'pets',
+            key: 'ID'
         }
-    );
-},
-
-
-    getAll: (callback) => {
-        connection.query('SELECT * FROM appointments', (err, result) => {
-            if (err) return callback(err, null);
-            callback(null, result);
-        });
     },
-
-    getById: (ID, callback) => {
-        connection.query('SELECT * FROM appointments WHERE ID = ?', [ID], (err, result) => {
-            if (err) return callback(err, null);
-            callback(null, result);
-        });
+    USER_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'users',
+            key: 'ID'
+        }
     },
-
-    update: (ID, DATE, TYPE, callback) => {
-        connection.query(
-            'UPDATE appointments SET DATE = ?, TYPE = ? WHERE ID = ?',
-            [DATE, TYPE, ID],
-            (err) => {
-                if (err) return callback(err);
-                callback(null);
-            }
-        );
+    SPECIALIST_ID: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'users',
+            key: 'ID'
+        }
     },
-
-    delete: (ID, callback) => {
-        connection.query('DELETE FROM appointments WHERE ID = ?', [ID], (err) => {
-            if (err) return callback(err);
-            callback(null);
-        });
+    is_deleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
     }
-};
+}, {
+    tableName: 'appointments',
+    timestamps: false // ✅ Activa `CREATED_AT` y `UPDATED_AT`
+});
+
+// 📩 Importamos modelos relacionados
+const User = require('./user');
+const Pet = require('./pet');
+
+// 📩 Definimos relaciones correctamente
+Appointment.belongsTo(User, { foreignKey: 'USER_ID' });
+Appointment.belongsTo(Pet, { foreignKey: 'PET_ID' });
+Appointment.belongsTo(User, { foreignKey: 'SPECIALIST_ID', as: 'Specialist' });
+
+User.hasMany(Appointment, { foreignKey: 'USER_ID' });
+User.hasMany(Appointment, { foreignKey: 'SPECIALIST_ID', as: 'SpecialistAppointments' });
+Pet.hasMany(Appointment, { foreignKey: 'PET_ID' });
 
 module.exports = Appointment;
