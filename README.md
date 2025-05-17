@@ -60,6 +60,7 @@
   <blockquote style="font-size: 20px; text-align: center; color: #E91E63;">
     </p>
 
+  <blockquote style="font-size: 20px; text-align: center; color: #E91E63;">
     "Aprender desarrollo es como construir un puente entre la creatividad y la lógica: cada línea de código te acerca más a convertir ideas en realidad." 🚀
   </blockquote>
 </div>
